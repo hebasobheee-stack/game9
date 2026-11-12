@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محاكاة الانعكاس والانسحاب في المستوى الديكارتي</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:#eef2f8;color:#1b2a41}
+header{background:#0d2b5e;color:#fff;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+header h1{margin:0 0 12px;font-size:1.6rem;text-align:center}
+.info{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.info div{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 14px;font-size:.95rem}
+.info b{color:#ffd166}
+main{display:grid;grid-template-columns:340px 1fr;gap:16px;padding:16px;max-width:1200px;margin:auto}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.panel{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.panel h3{margin:12px 0 8px;font-size:1rem;color:#0d2b5e;border-bottom:2px solid #dbe4f3;padding-bottom:4px}
+.panel h3:first-child{margin-top:0}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+button{font-family:inherit;font-size:.95rem;cursor:pointer;border:2px solid #0d2b5e;background:#fff;color:#0d2b5e;border-radius:8px;padding:7px 11px;transition:.15s}
+button:hover{background:#e6edfa}
+button.active{background:#0d2b5e;color:#fff}
+.go{background:#e8590c;border-color:#e8590c;color:#fff;font-weight:bold;flex:1}
+.go:hover{background:#c94a07}
+.hint{background:#f2b705;border-color:#f2b705;color:#222}
+.hint:hover{background:#d9a300}
+.reset{border-color:#777;color:#555}
+.actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+#tr{display:none;margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap}
+#tr input{width:60px;direction:rtl;padding:5px;font-size:1rem;border:1px solid #99a;border-radius:6px;text-align:center}
+table{width:100%;border-collapse:collapse;text-align:center;font-size:.95rem}
+th{background:#0d2b5e;color:#fff;padding:6px}
+td{border:1px solid #d3dcec;padding:5px;direction:rtl}
+td:first-child{direction:rtl;font-weight:bold}
+tr:nth-child(even) td{background:#f6f8fc}
+#msg{margin-top:10px;background:#fff7e0;border:1px solid #f2b705;border-radius:8px;padding:8px;font-size:.9rem;min-height:40px}
+.cv{background:#fff;border-radius:12px;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.1);text-align:center}
+canvas{width:100%;max-width:660px;height:auto;touch-action:none;border:1px solid #c5d0e6;border-radius:8px;cursor:grab;background:#fff}
+.lg{display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:.95rem}
+.lg i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle;margin-left:5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>محاكاة الانعكاس والانسحاب في المستوى الديكارتي</h1>
+  <div class="info">
+    <div><b>المادة:</b> الرياضيات</div>
+    <div><b>الدرس:</b> الانعكاس والانسحاب</div>
+    <div><b>الصف:</b> السابع</div>
+    <div><b>اسم المعلمة:</b> هبة الخطيب</div>
+    <div><b>اسم المدرسة:</b> مدرسة بنات جبع الثانوية</div>
+  </div>
+</header>
+<main>
+  <aside class="panel">
+    <h3>اختيار الشكل</h3>
+    <div class="btns" id="shapes">
+      <button data-s="point">نقطة</button>
+      <button data-s="segment">قطعة مستقيمة</button>
+      <button data-s="triangle" class="active">مثلث</button>
+      <button data-s="quad">شكل رباعي</button>
+    </div>
+    <h3>اختيار التحويل</h3>
+    <div class="btns" id="trans">
+      <button data-t="rx" class="active">انعكاس حول محور السينات</button>
+      <button data-t="ry">انعكاس حول محور الصادات</button>
+      <button data-t="tr">انسحاب</button>
+    </div>
+    <div id="tr">
+      <span>إزاحة أفقية (س):</span><input type="text" inputmode="numeric" id="dx" value="٣">
+      <span>إزاحة رأسية (ص):</span><input type="text" inputmode="numeric" id="dy" value="−٢">
+    </div>
+    <div class="actions">
+      <button class="go" id="go">تنفيذ التحويل</button>
+      <button class="hint" id="hint">تلميح</button>
+      <button class="reset" id="reset">إعادة الضبط</button>
+    </div>
+    <div id="msg">اسحبي رؤوس الشكل على الشبكة لتغيير موقعها، ثم اضغطي «تنفيذ التحويل».</div>
+    <h3>جدول الأزواج المرتبة</h3>
+    <table>
+      <thead><tr><th>الرأس</th><th>قبل التحويل</th><th>بعد التحويل</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </aside>
+  <section class="cv">
+    <canvas id="c" width="660" height="660"></canvas>
+    <div class="lg">
+      <span><i style="background:#1f6feb"></i>الشكل الأصلي</span>
+      <span><i style="background:#e8590c"></i>الشكل الناتج</span>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  const cv=document.getElementById('c'),ctx=cv.getContext('2d');ctx.direction='rtl';
+  const W=660,N=11,U=30,O=W/2; // range -11..11 , unit 30px
+  const names=['أ','ب','ج','د'];
+  const defaults={
+    point:[[2,3]],
+    segment:[[-4,1],[-1,5]],
+    triangle:[[1,2],[6,2],[3,6]],
+    quad:[[1,1],[6,1],[7,5],[2,6]]
+  };
+  let shape='triangle',trans='rx',pts=clone(defaults[shape]),done=false,drag=-1;
+
+  function clone(a){return a.map(p=>p.slice())}
+  const X=x=>O+x*U, Y=y=>O-y*U;
+  function apply(p){
+    if(trans==='rx')return[p[0],-p[1]];
+    if(trans==='ry')return[-p[0],p[1]];
+    return[p[0]+getD('dx'),p[1]+getD('dy')];
+  }
+  const ar=n=>(n<0?'−':'')+String(Math.abs(n)).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+  function getD(id){
+    const t=document.getElementById(id).value.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[−–—]/g,'-');
+    let v=parseInt(t.replace(/[^0-9]/g,''),10);if(isNaN(v))return 0;if(t.indexOf('-')>=0)v=-v;return Math.max(-10,Math.min(10,v));
+  }
+  const fmt=p=>'('+ar(p[0])+' ، '+ar(p[1])+')'; // (س ، ص): الإحداثي السيني يمين والصادي يسار
+
+  function grid(){
+    ctx.clearRect(0,0,W,W);
+    ctx.lineWidth=1;
+    for(let i=-N;i<=N;i++){
+      ctx.strokeStyle=i%5===0?'#b9c6e0':'#e3e9f5';
+      ctx.beginPath();ctx.moveTo(X(i),0);ctx.lineTo(X(i),W);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,Y(i));ctx.lineTo(W,Y(i));ctx.stroke();
+    }
+    ctx.strokeStyle='#1b2a41';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,O);ctx.lineTo(W,O);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(O,0);ctx.lineTo(O,W);ctx.stroke();
+    // arrows
+    ctx.fillStyle='#1b2a41';
+    ctx.beginPath();ctx.moveTo(W-2,O);ctx.lineTo(W-12,O-5);ctx.lineTo(W-12,O+5);ctx.fill();
+    ctx.beginPath();ctx.moveTo(O,2);ctx.lineTo(O-5,12);ctx.lineTo(O+5,12);ctx.fill();
+    ctx.font='bold 18px Segoe UI,Tahoma';ctx.textAlign='center';
+    ctx.fillText('س',W-14,O+24);ctx.fillText('ص',O+16,18);
+    // ticks & numbers
+    ctx.font='12px Segoe UI,Tahoma';ctx.fillStyle='#3a4a6b';ctx.lineWidth=1.5;ctx.strokeStyle='#1b2a41';
+    for(let i=-N+1;i<=N-1;i++){
+      if(i===0)continue;
+      ctx.beginPath();ctx.moveTo(X(i),O-4);ctx.lineTo(X(i),O+4);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(O-4,Y(i));ctx.lineTo(O+4,Y(i));ctx.stroke();
+      ctx.textAlign='center';ctx.fillText(ar(i),X(i),O+18);
+      ctx.textAlign='right';ctx.fillText(ar(i),O-8,Y(i)+4);
+    }
+    ctx.textAlign='right';ctx.fillText('٠',O-6,O+16);
+  }
+
+  function drawShape(P,color,suffix,fillA){
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3;ctx.lineJoin='round';
+    if(P.length>=2){
+      ctx.beginPath();
+      P.forEach((p,i)=>i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1])));
+      if(P.length>=3){ctx.closePath();ctx.globalAlpha=fillA;ctx.fill();ctx.globalAlpha=1}
+      ctx.stroke();
+    }
+    P.forEach((p,i)=>{
+      ctx.fillStyle=color;
+      ctx.beginPath();ctx.arc(X(p[0]),Y(p[1]),6,0,7);ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      // labels (placed away from shape centre)
+      let cx=0,cy=0;P.forEach(q=>{cx+=q[0];cy+=q[1]});cx/=P.length;cy/=P.length;
+      let dx=p[0]-cx,dy=p[1]-cy;if(P.length===1){dx=1;dy=1}
+      const l=Math.hypot(dx,dy)||1;
+      const lx=X(p[0])+dx/l*26,ly=Y(p[1])-dy/l*22;
+      ctx.textAlign='center';ctx.fillStyle=color;
+      ctx.font='bold 17px Segoe UI,Tahoma';ctx.fillText(names[i]+suffix,lx,ly-2);
+      ctx.font='12px Segoe UI,Tahoma';ctx.fillText(fmt(p),lx,ly+13);
+    });
+  }
+
+  function draw(){
+    grid();
+    if(done){
+      // mirror axis highlight
+      ctx.setLineDash([8,6]);ctx.lineWidth=2;ctx.strokeStyle='rgba(232,89,12,.55)';
+      if(trans==='rx'){ctx.beginPath();ctx.moveTo(0,O);ctx.lineTo(W,O);ctx.stroke()}
+      if(trans==='ry'){ctx.beginPath();ctx.moveTo(O,0);ctx.lineTo(O,W);ctx.stroke()}
+      if(trans==='tr'){
+        pts.forEach(p=>{const q=apply(p);ctx.beginPath();ctx.moveTo(X(p[0]),Y(p[1]));ctx.lineTo(X(q[0]),Y(q[1]));ctx.stroke()});
+      }
+      ctx.setLineDash([]);
+      drawShape(pts.map(apply),'#e8590c',"'",.18);
+    }
+    drawShape(pts,'#1f6feb','',.18);
+  }
+
+  function table(){
+    const tb=document.getElementById('tb');tb.innerHTML='';
+    pts.forEach((p,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+names[i]+'</td><td>'+fmt(p)+'</td><td>'+(done?fmt(apply(p)):'—')+'</td>';
+      tb.appendChild(tr);
+    });
+  }
+  function say(t){document.getElementById('msg').textContent=t}
+  function refresh(){draw();table()}
+
+  function setActive(boxId,attr,val){
+    document.querySelectorAll('#'+boxId+' button').forEach(b=>b.classList.toggle('active',b.dataset[attr]===val));
+  }
+  document.getElementById('shapes').onclick=e=>{
+    const b=e.target.closest('button');if(!b)return;
+    shape=b.dataset.s;pts=clone(defaults[shape]);done=false;setActive('shapes','s',shape);
+    say('تم اختيار الشكل. اسحبي الرؤوس لتغيير موقعها.');refresh();
+  };
+  document.getElementById('trans').onclick=e=>{
+    const b=e.target.closest('button');if(!b)return;
+    trans=b.dataset.t;done=false;setActive('trans','t',trans);
+    document.getElementById('tr').style.display=trans==='tr'?'flex':'none';
+    say('اضغطي «تنفيذ التحويل» لرؤية الناتج.');refresh();
+  };
+  ['dx','dy'].forEach(id=>document.getElementById(id).oninput=()=>{if(done)refresh()});
+  document.getElementById('go').onclick=()=>{
+    done=true;refresh();
+    say(trans==='rx'?'الانعكاس حول محور السينات: (س ، ص) ← (س ، −ص). تبقى السين كما هي وتتغير إشارة الصاد.'
+      :trans==='ry'?'الانعكاس حول محور الصادات: (س ، ص) ← (−س ، ص). تتغير إشارة السين وتبقى الصاد كما هي.'
+      :'الانسحاب: (س ، ص) ← (س + (\u2067'+ar(getD('dx'))+'\u2069) ، ص + (\u2067'+ar(getD('dy'))+'\u2069)). كل نقطة تتحرك المسافة نفسها في الاتجاه نفسه.');
+  };
+  document.getElementById('hint').onclick=()=>{
+    say(trans==='rx'?'تلميح: بعد الانعكاس حول محور السينات تبقى قيمة س ثابتة، وتصبح قيمة ص معاكسة في الإشارة. كل نقطة وصورتها على بعد واحد من المحور.'
+      :trans==='ry'?'تلميح: بعد الانعكاس حول محور الصادات تبقى قيمة ص ثابتة، وتصبح قيمة س معاكسة في الإشارة. كل نقطة وصورتها على بعد واحد من المحور.'
+      :'تلميح: في الانسحاب نضيف العدد نفسه إلى س لكل رأس، ونضيف العدد نفسه إلى ص. الشكل يحافظ على حجمه واتجاهه.');
+  };
+  document.getElementById('reset').onclick=()=>{
+    pts=clone(defaults[shape]);done=false;
+    document.getElementById('dx').value='٣';document.getElementById('dy').value='−٢';
+    say('تمت إعادة الضبط.');refresh();
+  };
+
+  // dragging
+  function pos(e){
+    const r=cv.getBoundingClientRect(),k=W/r.width;
+    return[(e.clientX-r.left)*k,(e.clientY-r.top)*k];
+  }
+  cv.addEventListener('pointerdown',e=>{
+    const[mx,my]=pos(e);let best=-1,bd=18;
+    pts.forEach((p,i)=>{const d=Math.hypot(X(p[0])-mx,Y(p[1])-my);if(d<bd){bd=d;best=i}});
+    if(best>=0){drag=best;cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'}
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(drag<0)return;
+    const[mx,my]=pos(e);
+    const cl=v=>Math.max(-N+1,Math.min(N-1,Math.round(v)));
+    const nx=cl((mx-O)/U),ny=cl((O-my)/U);
+    if(pts[drag][0]!==nx||pts[drag][1]!==ny){pts[drag]=[nx,ny];refresh()}
+  });
+  const end=()=>{drag=-1;cv.style.cursor='grab'};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+
+  refresh();
+})();
+</script>
+</body>
+</html>
